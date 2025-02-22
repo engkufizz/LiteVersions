@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Fee Management System</title>
+    <!-- Load XLSX library for export to Excel -->
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+      /* ---------- Global & Home Page Styles ---------- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      
+      body {
+        background: #f0f2f5;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        min-height: 100vh;
+      }
+      
+      /* Each "page" is hidden by default, only the active page is shown */
+      .page {
+        display: none;
+      }
+      
+      .page.active {
+        display: block;
+      }
+      
+      /* Home page header and navigation */
+      .header {
+        background: linear-gradient(135deg, #0056b3, #007bff);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin: 0;
+        width: 100%;
+      }
+      
+      .header h1 {
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        color: white;
+        margin: 0;
+      }
+      
+      .nav-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+      }
+      
+      .nav-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid #e1e4e8;
+        cursor: pointer;
+      }
+      
+      .nav-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+      }
+      
+      .nav-card h2 {
+        color: #0056b3;
+        margin-bottom: 15px;
+        font-size: 1.8em;
+      }
+      
+      .nav-card p {
+        color: #666;
+        line-height: 1.6;
+        font-size: 1.1em;
+      }
+      
+      .back-button {
+        display: inline-block;
+        padding: 12px 30px;
+        background: #666;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        margin: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      
+      .back-button:hover {
+        background: #555;
+      }
+      
+      /* ---------- Fee Management Common Styles ---------- */
+      .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      
+      h1, h2 {
+        color: #1a73e8;
+        margin-bottom: 20px;
+      }
+      
+      h1 {
+        text-align: center;
+        padding-bottom: 20px;
+      }
+      
+      .form-section {
+        margin-bottom: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+      }
+      
+      .input-group {
+        margin-bottom: 15px;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #444;
+        font-weight: 500;
+      }
+      
+      input, select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+      }
+      
+      input:focus, select:focus {
+        outline: none;
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+      }
+      
+      .payment-section {
+        margin-top: 15px;
+        padding: 15px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .btn {
+        background: #1a73e8;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+        margin: 5px;
+        min-width: 120px;
+      }
+      
+      .btn:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+      }
+      
+      .btn-danger {
+        background: #dc3545;
+      }
+      
+      .btn-danger:hover {
+        background: #bb2d3b;
+      }
+      
+      .btn-warning {
+        background: #ffc107;
+        color: #000;
+      }
+      
+      .btn-warning:hover {
+        background: #ffca2c;
+      }
+      
+      .table-container {
+        margin-top: 30px;
+        overflow-x: auto;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: white;
+      }
+      
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      
+      th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #1a73e8;
+      }
+      
+      tr:hover {
+        background-color: #f8f9fa;
+      }
+      
+      .delete-btn, .edit-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background-color 0.3s;
+      }
+      
+      .delete-btn {
+        background: #dc3545;
+        color: white;
+      }
+      
+      .delete-btn:hover {
+        background: #bb2d3b;
+      }
+      
+      .edit-btn {
+        background: #ffc107;
+        color: #000;
+        margin-right: 5px;
+      }
+      
+      .edit-btn:hover {
+        background: #ffca2c;
+      }
+      
+      .export-options, .backup-controls {
+        margin-top: 20px;
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+      
+      .status-message {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+        animation: fadeIn 0.3s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 15px;
+          margin: 10px;
+        }
+      
+        .header h1 {
+          font-size: 2em;
+        }
+      
+        .nav-container {
+          padding: 10px;
+        }
+      
+        .action-buttons {
+          flex-direction: column;
+        }
+      
+        .btn {
+          width: 100%;
+          margin: 5px 0;
+        }
+      
+        .form-section {
+          padding: 15px;
+        }
+      
+        table {
+          font-size: 14px;
+        }
+      
+        th, td {
+          padding: 8px 10px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .header h1 {
+          font-size: 1.8em;
+        }
+      
+        .nav-card h2 {
+          font-size: 1.5em;
+        }
+      
+        .form-section {
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Home Page -->
+    <div id="home" class="page active">
+      <div class="header">
+        <h1>Student Fee Management System</h1>
+      </div>
+      <div class="nav-container">
+        <div class="nav-card" onclick="showPage('monthly')">
+          <h2>Monthly Fee Management</h2>
+          <p>Manage monthly student fee records</p>
+        </div>
+        <div class="nav-card" onclick="showPage('yearly')">
+          <h2>Yearly Fee Management</h2>
+          <p>Manage yearly student fee records</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Monthly Fee Management Page -->
+    <div id="monthly" class="page">
+      <div class="header">
+        <h1>Monthly Student Fee Management System</h1>
+      </div>
+      <div class="back-button" onclick="showPage('home')">← Back to Home</div>
+      <div class="container">
+        <!-- Student Information Form -->
+        <div class="form-section">
+          <h2>Student Information</h2>
+          <div class="input-group">
+            <label for="monthly-studentNo">Student No:</label>
+            <input type="number" id="monthly-studentNo" required />
+          </div>
+          <div class="input-group">
+            <label for="monthly-studentName">Student Name:</label>
+            <input type="text" id="monthly-studentName" required />
+          </div>
+        </div>
+        <!-- Payment Information Form -->
+        <div class="form-section">
+          <h2>Payment Information</h2>
+          <div id="monthly-paymentsContainer">
+            <div class="payment-section">
+              <div class="input-group">
+                <label>Receipt No:</label>
+                <input type="text" class="receipt-no">
+              </div>
+              <div class="input-group">
+                <label>Payment Amount:</label>
+                <input type="number" class="payment-amount" step="0.01">
+              </div>
+              <div class="input-group">
+                <label>Description:</label>
+                <input type="text" class="payment-desc">
+              </div>
+            </div>
+          </div>
+          <button class="btn" onclick="monthly_addPaymentSection()">Add Another Payment</button>
+        </div>
+        <div class="input-group">
+          <label for="monthly-extraInfo">Extra Information:</label>
+          <input type="text" id="monthly-extraInfo" />
+        </div>
+        <div class="action-buttons">
+          <button class="btn" id="monthly-submitBtn" onclick="monthly_addStudent()">Add Student</button>
+          <button class="btn btn-warning" onclick="monthly_clearForm()">Clear Form</button>
+        </div>
+        <!-- Data Table -->
+        <div class="table-container">
+          <h2>Student Records</h2>
+          <table id="monthly-studentTable">
+            <thead>
+              <tr>
+                <th>Student No</th>
+                <th>Name</th>
+                <th>Receipt No</th>
+                <th>Payment</th>
+                <th>Description</th>
+                <th>Extra Info</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-studentTableBody"></tbody>
+          </table>
+        </div>
+        <div class="export-options">
+          <button class="btn" onclick="monthly_exportToExcel()">Export to Excel</button>
+          <button class="btn btn-danger" onclick="monthly_resetAllData()">Reset All Data</button>
+        </div>
+        <div class="backup-controls">
+          <button class="btn" onclick="monthly_downloadBackup()">Download Backup</button>
+          <input type="file" id="monthly-restoreFile" style="display: none;" onchange="monthly_restoreBackup(event)" accept=".json" />
+          <button class="btn" onclick="document.getElementById('monthly-restoreFile').click()">Restore from Backup</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Yearly Fee Management Page -->
+    <div id="yearly" class="page">
+      <div class="header">
+        <h1>Yearly Student Fee Management System</h1>
+      </div>
+      <div class="back-button" onclick="showPage('home')">← Back to Home</div>
+      <div class="container">
+        <!-- Student Information Form -->
+        <div class="form-section">
+          <h2>Student Information</h2>
+          <div class="input-group">
+            <label for="yearly-studentNo">Student No:</label>
+            <input type="number" id="yearly-studentNo" required />
+          </div>
+          <div class="input-group">
+            <label for="yearly-studentName">Student Name:</label>
+            <input type="text" id="yearly-studentName" required />
+          </div>
+        </div>
+        <!-- Payment Information Form -->
+        <div class="form-section">
+          <h2>Payment Information</h2>
+          <div id="yearly-paymentsContainer">
+            <div class="payment-section">
+              <div class="input-group">
+                <label>Receipt No:</label>
+                <input type="text" class="receipt-no">
+              </div>
+              <div class="input-group">
+                <label>Payment Amount:</label>
+                <input type="number" class="payment-amount" step="0.01">
+              </div>
+              <div class="input-group">
+                <label>Description:</label>
+                <input type="text" class="payment-desc">
+              </div>
+            </div>
+          </div>
+          <button class="btn" onclick="yearly_addPaymentSection()">Add Another Payment</button>
+        </div>
+        <div class="input-group">
+          <label for="yearly-extraInfo">Extra Information:</label>
+          <input type="text" id="yearly-extraInfo" />
+        </div>
+        <div class="action-buttons">
+          <button class="btn" id="yearly-submitBtn" onclick="yearly_addStudent()">Add Student</button>
+          <button class="btn btn-warning" onclick="yearly_clearForm()">Clear Form</button>
+        </div>
+        <!-- Data Table -->
+        <div class="table-container">
+          <h2>Student Records</h2>
+          <table id="yearly-studentTable">
+            <thead>
+              <tr>
+                <th>Student No</th>
+                <th>Name</th>
+                <th>Receipt No</th>
+                <th>Payment</th>
+                <th>Description</th>
+                <th>Extra Info</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="yearly-studentTableBody"></tbody>
+          </table>
+        </div>
+        <div class="export-options">
+          <button class="btn" onclick="yearly_exportToExcel()">Export to Excel</button>
+          <button class="btn btn-danger" onclick="yearly_resetAllData()">Reset All Data</button>
+        </div>
+        <div class="backup-controls">
+          <button class="btn" onclick="yearly_downloadBackup()">Download Backup</button>
+          <input type="file" id="yearly-restoreFile" style="display: none;" onchange="yearly_restoreBackup(event)" accept=".json" />
+          <button class="btn" onclick="document.getElementById('yearly-restoreFile').click()">Restore from Backup</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ---------- Navigation Script ---------- -->
+    <script>
+      function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(function(page) {
+          page.classList.remove('active');
+        });
+        document.getElementById(pageId).classList.add('active');
+        window.scrollTo(0, 0);
+      }
+    </script>
+    
+    <!-- ---------- Monthly Fee Management Script ---------- -->
+    <script>
+      let monthlyStudents = [];
+      let monthlyEditingId = null;
+      
+      function monthly_fetchStudents() {
+        fetch('/api/getStudents?feeType=monthly')
+          .then(res => res.json())
+          .then(data => {
+            monthlyStudents = data;
+            monthly_updateTable();
+          })
+          .catch(err => {
+            monthly_showMessage('Failed to load monthly records', 'error');
+          });
+      }
+      
+      function monthly_addPaymentSection() {
+        const container = document.getElementById('monthly-paymentsContainer');
+        const newSection = document.createElement('div');
+        newSection.className = 'payment-section';
+        newSection.innerHTML = `
+          <div class="input-group">
+            <label>Receipt No:</label>
+            <input type="text" class="receipt-no">
+          </div>
+          <div class="input-group">
+            <label>Payment Amount:</label>
+            <input type="number" class="payment-amount" step="0.01">
+          </div>
+          <div class="input-group">
+            <label>Description:</label>
+            <input type="text" class="payment-desc">
+          </div>
+        `;
+        container.appendChild(newSection);
+      }
+      
+      function monthly_addStudent() {
+        const studentNo = document.getElementById('monthly-studentNo').value.trim();
+        const studentName = document.getElementById('monthly-studentName').value.trim();
+        const extraInfo = document.getElementById('monthly-extraInfo').value.trim();
+      
+        if (!studentNo || !studentName) {
+          monthly_showMessage('Please fill in student number and name', 'error');
+          return;
+        }
+      
+        if (monthlyEditingId) {
+          monthly_updateStudent(monthlyEditingId);
+          return;
+        }
+      
+        const paymentSections = document.getElementById('monthly-paymentsContainer').getElementsByClassName('payment-section');
+        let payloads = [];
+        let hasValidPayment = false;
+        for (let section of paymentSections) {
+          const receiptNo = section.querySelector('.receipt-no').value.trim();
+          const payment = section.querySelector('.payment-amount').value;
+          const description = section.querySelector('.payment-desc').value.trim();
+          if (payment && parseFloat(payment) > 0) {
+            hasValidPayment = true;
+            payloads.push({
+              feeType: 'monthly',
+              studentNo: studentNo,
+              name: studentName,
+              receiptNo: receiptNo,
+              payment: parseFloat(payment),
+              description: description,
+              extraInfo: extraInfo,
+              timestamp: new Date().toISOString()
+            });
+          }
+        }
+      
+        if (!hasValidPayment) {
+          monthly_showMessage('Please enter at least one valid payment amount', 'error');
+          return;
+        }
+      
+        Promise.all(
+          payloads.map(payload =>
+            fetch('/api/addStudent', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            })
+          )
+        )
+          .then(responses => Promise.all(responses.map(r => r.json())))
+          .then(results => {
+            monthly_showMessage('Student record(s) added successfully!', 'success');
+            monthly_clearForm();
+            monthly_fetchStudents();
+          })
+          .catch(err => {
+            monthly_showMessage('Failed to add student record', 'error');
+          });
+      }
+      
+      function monthly_updateStudent(id) {
+        const studentNo = document.getElementById('monthly-studentNo').value.trim();
+        const studentName = document.getElementById('monthly-studentName').value.trim();
+        const extraInfo = document.getElementById('monthly-extraInfo').value.trim();
+      
+        if (!studentNo || !studentName) {
+          monthly_showMessage('Please fill in student number and name', 'error');
+          return;
+        }
+      
+        const section = document.getElementById('monthly-paymentsContainer').querySelector('.payment-section');
+        const receiptNo = section.querySelector('.receipt-no').value.trim();
+        const payment = section.querySelector('.payment-amount').value;
+        const description = section.querySelector('.payment-desc').value.trim();
+      
+        if (!(payment && parseFloat(payment) > 0)) {
+          monthly_showMessage('Please enter at least one valid payment amount', 'error');
+          return;
+        }
+      
+        const payload = {
+          id: id,
+          feeType: 'monthly',
+          studentNo: studentNo,
+          name: studentName,
+          receiptNo: receiptNo,
+          payment: parseFloat(payment),
+          description: description,
+          extraInfo: extraInfo,
+          timestamp: new Date().toISOString()
+        };
+      
+        fetch('/api/updateStudent', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(response => response.json())
+          .then(result => {
+            monthly_showMessage('Student record updated successfully!', 'success');
+            monthly_clearForm();
+            monthlyEditingId = null;
+            document.getElementById('monthly-submitBtn').textContent = 'Add Student';
+            monthly_fetchStudents();
+          })
+          .catch(err => {
+            monthly_showMessage('Failed to update student record', 'error');
+          });
+      }
+      
+      function monthly_editRecord(student) {
+        monthlyEditingId = student.id;
+        document.getElementById('monthly-studentNo').value = student.studentNo;
+        document.getElementById('monthly-studentName').value = student.name;
+        document.getElementById('monthly-extraInfo').value = student.extraInfo;
+        document.getElementById('monthly-paymentsContainer').innerHTML = '';
+        const paymentSection = document.createElement('div');
+        paymentSection.className = 'payment-section';
+        paymentSection.innerHTML = `
+          <div class="input-group">
+            <label>Receipt No:</label>
+            <input type="text" class="receipt-no" value="${student.receiptNo}">
+          </div>
+          <div class="input-group">
+            <label>Payment Amount:</label>
+            <input type="number" class="payment-amount" step="0.01" value="${student.payment}">
+          </div>
+          <div class="input-group">
+            <label>Description:</label>
+            <input type="text" class="payment-desc" value="${student.description}">
+          </div>
+        `;
+        document.getElementById('monthly-paymentsContainer').appendChild(paymentSection);
+        document.getElementById('monthly-submitBtn').textContent = 'Update Student';
+        document.querySelector('#monthly .form-section').scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      function monthly_deleteRecord(student) {
+        if (confirm('Are you sure you want to delete this record?')) {
+          fetch(`/api/student/${student.id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(result => {
+              monthly_showMessage('Record deleted successfully!', 'success');
+              monthly_fetchStudents();
+            })
+            .catch(err =>
+              monthly_showMessage('Failed to delete record', 'error')
+            );
+        }
+      }
+      
+      function monthly_updateTable() {
+        const tbody = document.getElementById('monthly-studentTableBody');
+        tbody.innerHTML = '';
+      
+        monthlyStudents
+          .sort((a, b) => {
+            if (a.studentNo === b.studentNo) {
+              return new Date(a.timestamp) - new Date(b.timestamp);
+            }
+            return parseInt(a.studentNo) - parseInt(b.studentNo);
+          })
+          .forEach(student => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = student.studentNo;
+            row.insertCell(1).textContent = student.name;
+            row.insertCell(2).textContent = student.receiptNo;
+            row.insertCell(3).textContent = parseFloat(student.payment).toFixed(2);
+            row.insertCell(4).textContent = student.description;
+            row.insertCell(5).textContent = student.extraInfo;
+            const actionCell = row.insertCell(6);
+      
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-btn';
+            editButton.textContent = 'Edit';
+            editButton.onclick = () => monthly_editRecord(student);
+      
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-btn';
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => monthly_deleteRecord(student);
+      
+            actionCell.appendChild(editButton);
+            actionCell.appendChild(deleteButton);
+          });
+      }
+      
+      function monthly_clearForm() {
+        document.getElementById('monthly-studentNo').value = '';
+        document.getElementById('monthly-studentName').value = '';
+        document.getElementById('monthly-extraInfo').value = '';
+        document.getElementById('monthly-paymentsContainer').innerHTML = `
+          <div class="payment-section">
+            <div class="input-group">
+              <label>Receipt No:</label>
+              <input type="text" class="receipt-no">
+            </div>
+            <div class="input-group">
+              <label>Payment Amount:</label>
+              <input type="number" class="payment-amount" step="0.01">
+            </div>
+            <div class="input-group">
+              <label>Description:</label>
+              <input type="text" class="payment-desc">
+            </div>
+          </div>
+        `;
+        monthlyEditingId = null;
+        document.getElementById('monthly-submitBtn').textContent = 'Add Student';
+      }
+      
+      function monthly_resetAllData() {
+        if (
+          confirm('Are you sure you want to delete ALL monthly fee data? This cannot be undone!')
+        ) {
+          fetch('/api/resetStudents?feeType=monthly', { method: 'DELETE' })
+            .then(response => response.json())
+            .then(result => {
+              monthly_showMessage('All monthly fee data has been reset!', 'success');
+              monthly_fetchStudents();
+            })
+            .catch(err => monthly_showMessage('Failed to reset data', 'error'));
+        }
+      }
+      
+      function monthly_exportToExcel() {
+        const detailWS = XLSX.utils.json_to_sheet(
+          monthlyStudents.map(s => ({
+            'Student No': s.studentNo,
+            Name: s.name,
+            'Receipt No': s.receiptNo,
+            Payment: parseFloat(s.payment),
+            Description: s.description,
+            'Extra Info': s.extraInfo
+          }))
+        );
+      
+        const summary = Array.from(new Set(monthlyStudents.map(s => s.studentNo))).map(no => {
+          const studentPayments = monthlyStudents.filter(s => s.studentNo === no);
+          return {
+            'Student No': no,
+            Name: studentPayments[0].name,
+            'Total Payment': studentPayments.reduce((sum, s) => sum + Number(s.payment), 0)
+          };
+        });
+        const summaryWS = XLSX.utils.json_to_sheet(summary);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, detailWS, 'Payments_Detail');
+        XLSX.utils.book_append_sheet(wb, summaryWS, 'Payments_Summary');
+        const date = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `monthly_student_fees_${date}.xlsx`);
+        monthly_showMessage('Monthly fee Excel file exported successfully!', 'success');
+      }
+      
+      function monthly_downloadBackup() {
+        const dataStr = JSON.stringify(monthlyStudents);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `monthly_student_fees_backup_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        monthly_showMessage('Backup file downloaded successfully!', 'success');
+      }
+      
+      function monthly_restoreBackup(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const data = JSON.parse(e.target.result);
+              Promise.all(
+                data.map(record => {
+                  record.feeType = 'monthly';
+                  return fetch('/api/addStudent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(record)
+                  });
+                })
+              )
+                .then(() => {
+                  monthly_showMessage('Backup restored successfully!', 'success');
+                  monthly_fetchStudents();
+                })
+                .catch(() => {
+                  monthly_showMessage('Error restoring backup.', 'error');
+                });
+            } catch (error) {
+              monthly_showMessage('Error restoring backup. Invalid file format.', 'error');
+            }
+          };
+          reader.readAsText(file);
+        }
+      }
+      
+      function monthly_showMessage(message, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `status-message ${type}`;
+        messageDiv.textContent = message;
+        document
+          .querySelector('#monthly .container')
+          .insertBefore(messageDiv, document.querySelector('#monthly .table-container'));
+        setTimeout(() => {
+          messageDiv.remove();
+        }, 3000);
+      }
+      
+      document.addEventListener('DOMContentLoaded', monthly_fetchStudents);
+    </script>
+    
+    <!-- ---------- Yearly Fee Management Script ---------- -->
+    <script>
+      let yearlyStudents = [];
+      let yearlyEditingId = null;
+      
+      function yearly_fetchStudents() {
+        fetch('/api/getStudents?feeType=yearly')
+          .then(response => response.json())
+          .then(data => {
+            yearlyStudents = data;
+            yearly_updateTable();
+          })
+          .catch(err => {
+            yearly_showMessage('Failed to load yearly records', 'error');
+          });
+      }
+      
+      function yearly_addPaymentSection() {
+        const container = document.getElementById('yearly-paymentsContainer');
+        const newSection = document.createElement('div');
+        newSection.className = 'payment-section';
+        newSection.innerHTML = `
+          <div class="input-group">
+            <label>Receipt No:</label>
+            <input type="text" class="receipt-no">
+          </div>
+          <div class="input-group">
+            <label>Payment Amount:</label>
+            <input type="number" class="payment-amount" step="0.01">
+          </div>
+          <div class="input-group">
+            <label>Description:</label>
+            <input type="text" class="payment-desc">
+          </div>
+        `;
+        container.appendChild(newSection);
+      }
+      
+      function yearly_addStudent() {
+        const studentNo = document.getElementById('yearly-studentNo').value.trim();
+        const studentName = document.getElementById('yearly-studentName').value.trim();
+        const extraInfo = document.getElementById('yearly-extraInfo').value.trim();
+      
+        if (!studentNo || !studentName) {
+          yearly_showMessage('Please fill in student number and name', 'error');
+          return;
+        }
+      
+        if (yearlyEditingId) {
+          yearly_updateStudent(yearlyEditingId);
+          return;
+        }
+      
+        const paymentSections = document.getElementById('yearly-paymentsContainer').getElementsByClassName('payment-section');
+        let payloads = [];
+        let hasValidPayment = false;
+        for (let section of paymentSections) {
+          const receiptNo = section.querySelector('.receipt-no').value.trim();
+          const payment = section.querySelector('.payment-amount').value;
+          const description = section.querySelector('.payment-desc').value.trim();
+          if (payment && parseFloat(payment) > 0) {
+            hasValidPayment = true;
+            payloads.push({
+              feeType: 'yearly',
+              studentNo: studentNo,
+              name: studentName,
+              receiptNo: receiptNo,
+              payment: parseFloat(payment),
+              description: description,
+              extraInfo: extraInfo,
+              timestamp: new Date().toISOString()
+            });
+          }
+        }
+      
+        if (!hasValidPayment) {
+          yearly_showMessage('Please enter at least one valid payment amount', 'error');
+          return;
+        }
+      
+        Promise.all(
+          payloads.map(payload =>
+            fetch('/api/addStudent', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            })
+          )
+        )
+          .then(responses => Promise.all(responses.map(r => r.json())))
+          .then(results => {
+            yearly_showMessage('Student record(s) added successfully!', 'success');
+            yearly_clearForm();
+            yearly_fetchStudents();
+          })
+          .catch(err => {
+            yearly_showMessage('Failed to add student record', 'error');
+          });
+      }
+      
+      function yearly_updateStudent(id) {
+        const studentNo = document.getElementById('yearly-studentNo').value.trim();
+        const studentName = document.getElementById('yearly-studentName').value.trim();
+        const extraInfo = document.getElementById('yearly-extraInfo').value.trim();
+      
+        if (!studentNo || !studentName) {
+          yearly_showMessage('Please fill in student number and name', 'error');
+          return;
+        }
+      
+        const section = document.getElementById('yearly-paymentsContainer').querySelector('.payment-section');
+        const receiptNo = section.querySelector('.receipt-no').value.trim();
+        const payment = section.querySelector('.payment-amount').value;
+        const description = section.querySelector('.payment-desc').value.trim();
+      
+        if (!(payment && parseFloat(payment) > 0)) {
+          yearly_showMessage('Please enter at least one valid payment amount', 'error');
+          return;
+        }
+      
+        const payload = {
+          id: id,
+          feeType: 'yearly',
+          studentNo: studentNo,
+          name: studentName,
+          receiptNo: receiptNo,
+          payment: parseFloat(payment),
+          description: description,
+          extraInfo: extraInfo,
+          timestamp: new Date().toISOString()
+        };
+      
+        fetch('/api/updateStudent', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(response => response.json())
+          .then(result => {
+            yearly_showMessage('Student record updated successfully!', 'success');
+            yearly_clearForm();
+            yearlyEditingId = null;
+            document.getElementById('yearly-submitBtn').textContent = 'Add Student';
+            yearly_fetchStudents();
+          })
+          .catch(err => {
+            yearly_showMessage('Failed to update student record', 'error');
+          });
+      }
+      
+      function yearly_editRecord(student) {
+        yearlyEditingId = student.id;
+        document.getElementById('yearly-studentNo').value = student.studentNo;
+        document.getElementById('yearly-studentName').value = student.name;
+        document.getElementById('yearly-extraInfo').value = student.extraInfo;
+        document.getElementById('yearly-paymentsContainer').innerHTML = '';
+        const paymentSection = document.createElement('div');
+        paymentSection.className = 'payment-section';
+        paymentSection.innerHTML = `
+          <div class="input-group">
+            <label>Receipt No:</label>
+            <input type="text" class="receipt-no" value="${student.receiptNo}">
+          </div>
+          <div class="input-group">
+            <label>Payment Amount:</label>
+            <input type="number" class="payment-amount" step="0.01" value="${student.payment}">
+          </div>
+          <div class="input-group">
+            <label>Description:</label>
+            <input type="text" class="payment-desc" value="${student.description}">
+          </div>
+        `;
+        document.getElementById('yearly-paymentsContainer').appendChild(paymentSection);
+        document.getElementById('yearly-submitBtn').textContent = 'Update Student';
+        document.querySelector('#yearly .form-section').scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      function yearly_deleteRecord(student) {
+        if (confirm('Are you sure you want to delete this record?')) {
+          fetch(`/api/student/${student.id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(result => {
+              yearly_showMessage('Record deleted successfully!', 'success');
+              yearly_fetchStudents();
+            })
+            .catch(err => {
+              yearly_showMessage('Failed to delete record', 'error');
+            });
+        }
+      }
+      
+      function yearly_updateTable() {
+        const tbody = document.getElementById('yearly-studentTableBody');
+        tbody.innerHTML = '';
+      
+        yearlyStudents
+          .sort((a, b) => {
+            if (a.studentNo === b.studentNo) {
+              return new Date(a.timestamp) - new Date(b.timestamp);
+            }
+            return parseInt(a.studentNo) - parseInt(b.studentNo);
+          })
+          .forEach(student => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = student.studentNo;
+            row.insertCell(1).textContent = student.name;
+            row.insertCell(2).textContent = student.receiptNo;
+            row.insertCell(3).textContent = parseFloat(student.payment).toFixed(2);
+            row.insertCell(4).textContent = student.description;
+            row.insertCell(5).textContent = student.extraInfo;
+            const actionCell = row.insertCell(6);
+      
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-btn';
+            editButton.textContent = 'Edit';
+            editButton.onclick = () => yearly_editRecord(student);
+      
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-btn';
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => yearly_deleteRecord(student);
+      
+            actionCell.appendChild(editButton);
+            actionCell.appendChild(deleteButton);
+          });
+      }
+      
+      function yearly_clearForm() {
+        document.getElementById('yearly-studentNo').value = '';
+        document.getElementById('yearly-studentName').value = '';
+        document.getElementById('yearly-extraInfo').value = '';
+        document.getElementById('yearly-paymentsContainer').innerHTML = `
+          <div class="payment-section">
+            <div class="input-group">
+              <label>Receipt No:</label>
+              <input type="text" class="receipt-no">
+            </div>
+            <div class="input-group">
+              <label>Payment Amount:</label>
+              <input type="number" class="payment-amount" step="0.01">
+            </div>
+            <div class="input-group">
+              <label>Description:</label>
+              <input type="text" class="payment-desc">
+            </div>
+          </div>
+        `;
+        yearlyEditingId = null;
+        document.getElementById('yearly-submitBtn').textContent = 'Add Student';
+      }
+      
+      function yearly_resetAllData() {
+        if (
+          confirm('Are you sure you want to delete ALL yearly fee data? This cannot be undone!')
+        ) {
+          fetch('/api/resetStudents?feeType=yearly', { method: 'DELETE' })
+            .then(response => response.json())
+            .then(result => {
+              yearly_showMessage('All yearly fee data has been reset!', 'success');
+              yearly_fetchStudents();
+            })
+            .catch(err => yearly_showMessage('Failed to reset data', 'error'));
+        }
+      }
+      
+      function yearly_exportToExcel() {
+        const detailWS = XLSX.utils.json_to_sheet(
+          yearlyStudents.map(s => ({
+            'Student No': s.studentNo,
+            'Name': s.name,
+            'Receipt No': s.receiptNo,
+            'Payment': parseFloat(s.payment),
+            'Description': s.description,
+            'Extra Info': s.extraInfo
+          }))
+        );
+      
+        const summary = Array.from(new Set(yearlyStudents.map(s => s.studentNo))).map(no => {
+          const studentPayments = yearlyStudents.filter(s => s.studentNo === no);
+          return {
+            'Student No': no,
+            'Name': studentPayments[0].name,
+            'Total Payment': studentPayments.reduce((sum, s) => sum + Number(s.payment), 0)
+          };
+        });
+        const summaryWS = XLSX.utils.json_to_sheet(summary);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, detailWS, 'Payments_Detail');
+        XLSX.utils.book_append_sheet(wb, summaryWS, 'Payments_Summary');
+        const date = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `yearly_student_fees_${date}.xlsx`);
+        yearly_showMessage('Yearly fee Excel file exported successfully!', 'success');
+      }
+      
+      function yearly_downloadBackup() {
+        const dataStr = JSON.stringify(yearlyStudents);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `yearly_student_fees_backup_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        yearly_showMessage('Backup file downloaded successfully!', 'success');
+      }
+      
+      function yearly_restoreBackup(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const data = JSON.parse(e.target.result);
+              Promise.all(
+                data.map(record => {
+                  record.feeType = 'yearly';
+                  return fetch('/api/addStudent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(record)
+                  });
+                })
+              )
+                .then(() => {
+                  yearly_showMessage('Backup restored successfully!', 'success');
+                  yearly_fetchStudents();
+                })
+                .catch(() => {
+                  yearly_showMessage('Error restoring backup.', 'error');
+                });
+            } catch (error) {
+              yearly_showMessage('Error restoring backup. Invalid file format.', 'error');
+            }
+          };
+          reader.readAsText(file);
+        }
+      }
+      
+      function yearly_showMessage(message, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `status-message ${type}`;
+        messageDiv.textContent = message;
+        document.querySelector('#yearly .container').insertBefore(messageDiv, document.querySelector('#yearly .table-container'));
+        setTimeout(() => {
+          messageDiv.remove();
+        }, 3000);
+      }
+      
+      document.addEventListener('DOMContentLoaded', yearly_fetchStudents);
+    </script>
+  </body>
+</html>
